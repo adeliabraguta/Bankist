@@ -47,7 +47,6 @@ const createUserNames = function (accs) {
 }
 createUserNames(accounts)
 
-
 //balance
 let formattedBalance = ref('')
 const displayBalance = function (acc) {
@@ -65,13 +64,12 @@ const displaySummery = function (acc) {
     labelSumIn = `${incomes}€`
 
     const outcomes = Math.abs(acc.movements.filter(mov => mov < 0).reduce((acc, curr) => acc + curr))
-    labelSumOut= `${outcomes}€`
+    labelSumOut = `${outcomes}€`
 
     const interest = acc.movements.filter(mov => mov > 0).map(dep => (dep * 1.2) / 100).reduce((dep, curr) => dep + curr).toFixed(2)
-    labelSumInterest= `${interest}€`
+    labelSumInterest = `${interest}€`
 
 }
-
 
 let currentAccount = ref(null);
 let labelWelcome = ref('Log in to get started')
@@ -80,9 +78,9 @@ const inputLoginUsername = ref('')
 const inputLoginPin = ref('')
 const btnLogin = (e) => {
     e.preventDefault();
-    currentAccount.value  = accounts.find(acc => acc.username === inputLoginUsername.value);
+    currentAccount.value = accounts.find(acc => acc.username === inputLoginUsername.value);
     if (currentAccount.value?.pin === Number(inputLoginPin.value)) {
-        labelWelcome =  `Welcome back, ${currentAccount.value.owner.split(' ')[0]}`
+        labelWelcome = `Welcome back, ${currentAccount.value.owner.split(' ')[0]}`
         containerApp.value.style.opacity = 100;
         inputLoginPin.value = inputLoginUsername.value = '';
         displayBalance(currentAccount.value);
@@ -90,7 +88,7 @@ const btnLogin = (e) => {
     }
 }
 
-const receiveAcc =ref(null)
+const receiveAcc = ref(null)
 const inputTransferTo = ref('')
 const inputTransferAmount = ref('')
 const btnTransfer = (e) => {
@@ -98,11 +96,37 @@ const btnTransfer = (e) => {
     receiveAcc.value = accounts.find(acc => acc.username === inputTransferTo.value)
     const amount = Number(inputTransferAmount.value)
     inputTransferTo.value = inputTransferAmount.value = ''
-    if(amount > 0 && receiveAcc && currentAccount.value.balance >=0 && receiveAcc?.value.username !== currentAccount.value.username){
+    if (amount > 0 && receiveAcc && currentAccount.value.balance >= 0 && receiveAcc?.value.username !== currentAccount.value.username) {
         currentAccount.value.movements.push(-amount)
         receiveAcc.value.movements.push(amount)
         displaySummery(currentAccount.value)
         displayBalance(currentAccount.value)
+    }
+}
+const inputLoanAmount = ref('')
+const btnLoan = (e) => {
+    e.preventDefault()
+    const amount = Number(inputLoanAmount.value)
+    if (amount > 0 && currentAccount.value.movements.some(mov => mov >= amount * 0.1)) {
+        currentAccount.value.movements.push(amount);
+        displayBalance(currentAccount.value)
+        displaySummery(currentAccount.value)
+        inputLoanAmount.value = ''
+    }
+}
+
+
+const inputCloseUsername = ref('')
+const inputClosePin = ref('')
+
+const btnClose = (e) => {
+    e.preventDefault();
+    if (inputCloseUsername.value === currentAccount.value.username &&
+        Number(inputClosePin.value) === currentAccount.value.pin) {
+        const index = accounts.findIndex(acc => acc.username === currentAccount.value.username)
+        accounts.splice(index, 1)
+        containerApp.value.style.opacity = 0;
+        inputClosePin.value = inputCloseUsername.value = '';
     }
 
 }
@@ -110,9 +134,9 @@ const btnTransfer = (e) => {
 </script>
 
 <template>
-    <!-- TOP NAVIGATION -->
+  <!-- TOP NAVIGATION -->
     <nav>
-        <p class="welcome"> {{labelWelcome}}</p>
+        <p class="welcome"> {{ labelWelcome }}</p>
         <img src="../assets/logo.png" alt="Logo" class="logo"/>
         <form class="login">
             <input
@@ -123,13 +147,13 @@ const btnTransfer = (e) => {
             />
             <!-- In practice, use type="password" -->
             <input
-                    type="text"
+                    type="password"
                     placeholder="PIN"
                     maxlength="4"
                     class="login__input login__input--pin"
                     v-model="inputLoginPin"
             />
-            <button class="login__btn" @click="btnLogin" > &rarr;</button>
+            <button class="login__btn" @click="btnLogin"> &rarr;</button>
         </form>
     </nav>
 
@@ -142,29 +166,29 @@ const btnTransfer = (e) => {
                     As of <span class="date">05/03/2037</span>
                 </p>
             </div>
-            <p class="balance__value" >{{formattedBalance}}</p>
+            <p class="balance__value">{{ formattedBalance }}</p>
         </div>
 
         <!-- MOVEMENTS -->
         <div class="movements">
-        <div v-for="(mov, i) in currentAccount?.movements.slice().reverse()" :key="i" class="movements__row">
-            <div class="movements__type" :class="'movements__type--' + (mov > 0 ? 'deposit' : 'withdrawal')">
-                {{ currentAccount.movements.length - i }} {{ mov > 0 ? 'deposit' : 'withdrawal' }}
+            <div v-for="(mov, i) in currentAccount?.movements.slice().reverse()" :key="i" class="movements__row">
+                <div class="movements__type" :class="'movements__type--' + (mov > 0 ? 'deposit' : 'withdrawal')">
+                    {{ currentAccount.movements.length - i }} {{ mov > 0 ? 'deposit' : 'withdrawal' }}
+                </div>
+                <div class="movements__date">3 days ago</div>
+                <div class="movements__value">{{ mov }}€</div>
             </div>
-            <div class="movements__date">3 days ago</div>
-            <div class="movements__value">{{ mov }}€</div>
         </div>
-    </div>
 
         <!-- SUMMARY -->
         <div class="summary">
             <p class="summary__label">In</p>
-            <p class="summary__value summary__value--in">{{labelSumIn}}</p>
+            <p class="summary__value summary__value--in">{{ labelSumIn }}</p>
             <p class="summary__label">Out</p>
-            <p class="summary__value summary__value--out">{{labelSumOut}}</p>
+            <p class="summary__value summary__value--out">{{ labelSumOut }}</p>
             <p class="summary__label">Interest</p>
-            <p class="summary__value summary__value--interest">{{labelSumInterest}}</p>
-            <button class="btn--sort">&downarrow; SORT</button>
+            <p class="summary__value summary__value--interest">{{ labelSumInterest }}</p>
+            <button class="btn--sort" @click="sort">&downarrow; SORT</button>
         </div>
 
         <!-- OPERATION: TRANSFERS -->
@@ -183,8 +207,8 @@ const btnTransfer = (e) => {
         <div class="operation operation--loan">
             <h2>Request loan</h2>
             <form class="form form--loan">
-                <input type="number" class="form__input form__input--loan-amount"/>
-                <button class="form__btn form__btn--loan">&rarr;</button>
+                <input type="number" class="form__input form__input--loan-amount" v-model="inputLoanAmount"/>
+                <button class="form__btn form__btn--loan" @click="btnLoan">&rarr;</button>
                 <label class="form__label form__label--loan">Amount</label>
             </form>
         </div>
@@ -193,13 +217,14 @@ const btnTransfer = (e) => {
         <div class="operation operation--close">
             <h2>Close account</h2>
             <form class="form form--close">
-                <input type="text" class="form__input form__input--user"/>
+                <input type="text" class="form__input form__input--user" v-model="inputCloseUsername"/>
                 <input
                         type="password"
                         maxlength="6"
                         class="form__input form__input--pin"
+                        v-model="inputClosePin"
                 />
-                <button class="form__btn form__btn--close">&rarr;</button>
+                <button class="form__btn form__btn--close" @click="btnClose">&rarr;</button>
                 <label class="form__label">Confirm user</label>
                 <label class="form__label">Confirm PIN</label>
             </form>
@@ -211,9 +236,9 @@ const btnTransfer = (e) => {
         </p>
     </main>
 
-    <!-- <footer>
-      &copy; by Jonas Schmedtmann. Don't claim as your own :)
-    </footer> -->
+  <!-- <footer>
+    &copy; by Jonas Schmedtmann. Don't claim as your own :)
+  </footer> -->
 
 </template>
 
